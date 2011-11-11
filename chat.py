@@ -12,9 +12,10 @@ from gevent.event import Event
 
 class DemoHandler(WebMessageHandler, Jinja2Rendering):
   def get(self):
-    name = self.get_argument('name', 'dude')
-    self.set_body('Take five, %s!' % name)
-    return self.render_template('base.html')
+    context = {
+        'messages': json.dumps(buffer_array)
+    }
+    return self.render_template('base.html', **context)
 
 class FeedHandler(WebMessageHandler):
   def post(self):
@@ -29,10 +30,9 @@ class FeedHandler(WebMessageHandler):
     return self.render()
 
   def get(self):
-    new_message_event.wait()
+    new_message_event.wait(10)
     self.set_body(json.dumps(buffer_array))
     return self.render()
-
 
 config = {
     'mongrel2_pair': ('ipc://127.0.0.1:9999', 'ipc://127.0.0.1:9998'),

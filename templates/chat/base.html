@@ -12,6 +12,7 @@
 
     <script type="text/javascript" charset="utf-8">
       function addmsg(type, response_json) {
+        console.log(response_json)
         var msgarray = $.parseJSON(response_json);
         $("#messages").html("");
         for(var i = 0; i < msgarray.length; i++){
@@ -40,8 +41,8 @@
             },
         });
       };
-
       $(document).ready(function(){
+        addmsg("new", '{% block body %}{{messages}}{% endblock %}');
         waitForMsg();
         $("#chat form").submit(function(e){
           e.preventDefault();
@@ -61,6 +62,7 @@
             dataType: "json"
           });
         });
+
       });
     </script>
 </head>
