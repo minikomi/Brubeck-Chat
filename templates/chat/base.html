@@ -1,0 +1,79 @@
+<html>
+  <head>
+    <title>Long Poller</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+
+    <style type="text/css" media="screen">
+      body { background:#fff; color:#000; font-size:.9em; }
+      #header { background: #333; color: #fff; padding: 10px;}
+      #input_box { background: border: 1px #ccc solid; padding: 10px; width: 100%;}
+      .msg{ background:#aaeeaa; border-bottom: 1px #000 solid; padding: 3px;}
+    </style>
+
+    <script type="text/javascript" charset="utf-8">
+      function addmsg(type, response_json) {
+        var msgarray = $.parseJSON(response_json);
+        $("#messages").html("");
+        for(var i = 0; i < msgarray.length; i++){
+          $("#messages").prepend(
+              "<div class='msg "+ type +"'>"+ msgarray[i] +"</div>"
+            );
+        }
+      }
+
+      function waitForMsg() {
+        $.ajax({
+            type: "GET",
+            url: "/feed",
+            async: true,
+            cache: false,
+            timeout:50000,
+
+            success: function(data) { 
+                addmsg("new", data);
+                setTimeout('waitForMsg()', 1000);
+            },
+
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                addmsg("error", textStatus + " (" + errorThrown + ")");
+                setTimeout('waitForMsg()', "15000");
+            },
+        });
+      };
+
+      $(document).ready(function(){
+        waitForMsg();
+        $("#chat form").submit(function(e){
+          e.preventDefault();
+
+          var success = function(){
+            $("#msgbox").attr("value", "");
+            $("#chat .notice").text("Message sent!").show().delay(400).fadeOut(400);
+          };
+
+          var message = $("#msgbox").val();
+
+          $.ajax({
+            type: 'POST',
+            url: "/feed",
+            data: {"message": message},
+            success: success,
+            dataType: "json"
+          });
+        });
+      });
+    </script>
+</head>
+<body>
+  <div id="header">
+  </div>
+  <div id="chat">
+    <form action="/" method="post" >
+      <input id="msgbox" type="text" name="message" />
+      <input type="submit" />
+      <span class="notice"></span>
+  </div>
+  <div id="messages">
+  </div>
+</body>
+</html>
